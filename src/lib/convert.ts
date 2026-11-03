@@ -1,5 +1,7 @@
-export type RGBType = [number, number, number];
-export type HSLType = RGBType;
+// r, g, b は 0〜255
+export type RGBType = [r: number, g: number, b: number];
+// h は 0〜360、s と l は 0〜1
+export type HSLType = [h: number, s: number, l: number];
 export type Rgb2HexType = (rgb: RGBType) => string;
 export type Hex2RgbType = (hex: string) => RGBType;
 export type Rgb2HslType = (rgb: RGBType) => HSLType;

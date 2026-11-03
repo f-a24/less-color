@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import less from 'less';
-import lf from '../index';
-
-const { contrast, mix, tint, shade, spin } = lf;
+import { contrast, mix, tint, shade, spin } from '../index';
 
 // Less 本家で式を評価し、出力された値を返す
 const evalLess = async (expr: string) => {

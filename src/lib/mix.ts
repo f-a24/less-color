@@ -1,6 +1,10 @@
 import { hex2rgb, rgb2hex } from './convert';
 
-export type MixType = (c1: string, c2: string, weight?: number) => string;
+export type MixType = (
+  color1: string,
+  color2: string,
+  weight?: number
+) => string;
 
 // Less と同様に weight の省略時は 50 とする
 const mix: MixType = (c1, c2, weight = 50) => {

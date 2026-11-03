@@ -2,9 +2,27 @@
   "name": "less-functions",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/index.ts",
+  "description": "Less の色関数（mix / tint / shade / spin / contrast / luma）の TypeScript 移植",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "license": "MIT",
   "scripts": {
+    "build": "bun run build:js && bun run build:types",
+    "build:js": "bun build src/index.ts --outdir dist --target browser --format esm",
+    "build:types": "tsc -p tsconfig.build.json",
+    "prebuild": "rm -rf dist",
+    "prepublishOnly": "bun run build",
     "lint": "oxlint",
     "fix": "oxlint --fix",
     "format": "bun fmt --no-script",
