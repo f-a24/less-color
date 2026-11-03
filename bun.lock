@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "less-functions",
+      "name": "less-color",
       "devDependencies": {
         "@types/bun": "^1.4.4",
         "@types/less": "^3.0.8",

@@ -1,4 +1,4 @@
-# less-functions
+# less-color
 
 [Less](https://lesscss.org/) の色関数を TypeScript に移植したライブラリです。
 Less 本家と同じ結果を返すことを目標にしており、テストで `less` パッケージの出力と照合しています。
@@ -15,7 +15,7 @@ import {
   fade,
   multiply,
   hue
-} from 'less-functions';
+} from 'less-color';
 
 mix('#000000', '#ffffff', 25); // '#bfbfbf'
 tint('#336699', 50); // '#99b3cc'
@@ -32,10 +32,10 @@ tree-shaking が効くよう、エクスポートはすべて名前付きです�
 まとめて扱いたい場合は名前空間としてインポートします。
 
 ```ts
-import * as lf from 'less-functions';
+import * as lc from 'less-color';
 
-lf.mix('#000000', '#ffffff');
-lf.hex2rgb('#f80'); // [255, 136, 0]
+lc.mix('#000000', '#ffffff');
+lc.hex2rgb('#f80'); // [255, 136, 0]
 ```
 
 ## 関数をつなげて使う（`color()`）
@@ -44,7 +44,7 @@ lf.hex2rgb('#f80'); // [255, 136, 0]
 `color()` を使うと途中結果を小数のまま保つので、Less で関数を入れ子にした場合と同じ結果になります。
 
 ```ts
-import { color, lighten, darken } from 'less-functions';
+import { color, lighten, darken } from 'less-color';
 
 // Less の lighten(darken(#336699, 3%), 5%) と同じ結果
 color('#336699').darken(3).lighten(5).toString(); // '#366ba1'

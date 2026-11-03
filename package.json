@@ -1,8 +1,8 @@
 {
-  "name": "less-functions",
+  "name": "less-color",
   "version": "1.0.0",
   "type": "module",
-  "description": "Less の色関数（mix / tint / shade / spin / contrast / luma）の TypeScript 移植",
+  "description": "Less の色関数（mix / tint / spin / lighten / fade / multiply など）の TypeScript 移植",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
