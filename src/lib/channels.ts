@@ -1,4 +1,4 @@
-import { type ColorInput, parseColor, toHSLA } from './color';
+import { type ColorInput, parseColor, toHSLA } from './color.js';
 
 /* 色相（0〜360） */
 export const hue = (color: ColorInput) => toHSLA(parseColor(color)).h;

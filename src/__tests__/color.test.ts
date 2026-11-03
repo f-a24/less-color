@@ -5,8 +5,8 @@ import {
   formatColor,
   toAmount,
   toRatio
-} from '../lib/color';
-import { color, contrast, fade, lighten, mix, spin } from '../index';
+} from '../lib/color.js';
+import { color, contrast, fade, lighten, mix, spin } from '../index.js';
 
 test('parseColor', () => {
   expect(parseColor('#f80')).toStrictEqual({ r: 255, g: 136, b: 0, a: 1 });
@@ -45,7 +45,10 @@ test('parseColor（不正な入力）', () => {
     'rgb(1, 2)',
     'rgb(1, 2, x)',
     'hsl(1, 2, 3, 4, 5)',
-    'notacolor'
+    'notacolor',
+    // Object.prototype のプロパティ名（入力は小文字化されるので小文字のもの）
+    'constructor',
+    '__proto__'
   ]) {
     expect(() => parseColor(input)).toThrow(TypeError);
   }
@@ -141,4 +144,14 @@ test('color() チェーン', () => {
   expect(c.contrast().toString()).toBe('#ffffff');
   // Color は ColorType なので、そのまま関数にも渡せる
   expect(lighten(c, 10)).toBe(lighten('#336699', 10));
+});
+
+test('hsl() の彩度・明度は単位なしでも 0〜100 として扱う（CSS Color 4）', () => {
+  const expected = parseColor('hsl(120, 50%, 50%)');
+  expect(parseColor('hsl(120 50 50)')).toStrictEqual(expected);
+  expect(parseColor('hsl(120, 50, 50)')).toStrictEqual(expected);
+  expect(parseColor('hsla(120 50 50 / 0.5)')).toStrictEqual({
+    ...expected,
+    a: 0.5
+  });
 });

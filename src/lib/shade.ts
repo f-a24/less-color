@@ -1,5 +1,5 @@
-import type { AmountType, ColorInput, ColorType } from './color';
-import mix, { mixColor } from './mix';
+import type { AmountType, ColorInput, ColorType } from './color.js';
+import mix, { mixColor } from './mix.js';
 
 export type ShadeType = (
   color: ColorInput,

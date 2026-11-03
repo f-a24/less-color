@@ -6,7 +6,7 @@ import {
   parseColor,
   toFinite,
   toHSLA
-} from './color';
+} from './color.js';
 
 export type SpinType = (color: ColorInput, angle: number) => string;
 

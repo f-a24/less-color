@@ -5,7 +5,7 @@ import {
   formatColor,
   parseColor,
   toAmount
-} from './color';
+} from './color.js';
 
 export type MixType = (
   color1: ColorInput,

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import less from 'less';
-import * as lf from '../index';
+import * as lf from '../index.js';
 
 const { color, contrast, mix, tint, shade, spin } = lf;
 

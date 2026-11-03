@@ -4,7 +4,7 @@ import {
   type ColorType,
   formatColor,
   parseColor
-} from './color';
+} from './color.js';
 import {
   type MethodType,
   darkenColor,
@@ -15,7 +15,7 @@ import {
   greyscaleColor,
   lightenColor,
   saturateColor
-} from './adjust';
+} from './adjust.js';
 import {
   averageColor,
   differenceColor,
@@ -26,15 +26,15 @@ import {
   overlayColor,
   screenColor,
   softlightColor
-} from './blend';
-import * as channels from './channels';
-import * as output from './output';
-import { pickContrast } from './contrast';
-import luma from './luma';
-import { mixColor } from './mix';
-import { shadeColor } from './shade';
-import { spinColor } from './spin';
-import { tintColor } from './tint';
+} from './blend.js';
+import * as channels from './channels.js';
+import * as output from './output.js';
+import { pickContrast } from './contrast.js';
+import luma from './luma.js';
+import { mixColor } from './mix.js';
+import { shadeColor } from './shade.js';
+import { spinColor } from './spin.js';
+import { tintColor } from './tint.js';
 
 /*
  * 関数をつなげて呼ぶための色オブジェクト

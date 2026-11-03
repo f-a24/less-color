@@ -7,7 +7,7 @@ import {
   toHslString,
   toRgb,
   toRgbString
-} from '../index';
+} from '../index.js';
 
 test('toHex', () => {
   expect(toHex('#336699')).toBe('#336699');

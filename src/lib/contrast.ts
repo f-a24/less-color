@@ -5,7 +5,7 @@ import {
   parseColor,
   relativeLuminance,
   toRatio
-} from './color';
+} from './color.js';
 
 export type ContrastType = (
   color: ColorInput,

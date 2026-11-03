@@ -25,10 +25,22 @@ export const toRGB = (rgb: readonly [number, number, number]): RGBType => [
   toRGBValue(rgb[2])
 ];
 
+// 有限の数値であることを検証する。NaN や Infinity は TypeError
+const assertFinite = (values: readonly number[], label: string) => {
+  for (const v of values) {
+    if (typeof v !== 'number' || !Number.isFinite(v)) {
+      throw new TypeError(`Invalid ${label} value: ${v}`);
+    }
+  }
+};
+
+const clamp255 = (v: number) => Math.min(255, Math.max(0, v));
+
 /* RGB => HEX */
 // Less と同様に 0〜255 に収めてから四捨五入する
 export const toHexByte = (v: number) => {
-  const n = Math.round(Math.min(255, Math.max(0, v)));
+  assertFinite([v], 'RGB');
+  const n = Math.round(clamp255(v));
   return `0${n.toString(16)}`.slice(-2);
 };
 
@@ -67,11 +79,12 @@ export const hex2rgb: Hex2RgbType = hex => {
   return [rgba[0], rgba[1], rgba[2]];
 };
 
-/* RGB => HSL */
+/* RGB => HSL（範囲外の値は 0〜255 にクランプする） */
 export const rgb2hsl: Rgb2HslType = rgb => {
-  const r = rgb[0] / 255;
-  const g = rgb[1] / 255;
-  const b = rgb[2] / 255;
+  assertFinite(rgb, 'RGB');
+  const r = clamp255(rgb[0]) / 255;
+  const g = clamp255(rgb[1]) / 255;
+  const b = clamp255(rgb[2]) / 255;
 
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
@@ -118,6 +131,7 @@ const hue = (h: number, m1: number, m2: number) => {
 
 /* HSL => RGB */
 export const hsl2rgb: Hsl2RgbType = hsl => {
+  assertFinite(hsl, 'HSL');
   // 負の値や 360 以上の色相も 0〜360 の範囲に正規化する
   const h = (((hsl[0] % 360) + 360) % 360) / 360;
   const s = Math.min(1, Math.max(0, hsl[1]));
@@ -130,6 +144,6 @@ export const hsl2rgb: Hsl2RgbType = hsl => {
     hue(h + 1 / 3, m1, m2) * 255,
     hue(h, m1, m2) * 255,
     hue(h - 1 / 3, m1, m2) * 255
-  ].map(v => Math.min(255, Math.max(0, v)));
+  ].map(clamp255);
   return [r, g, b];
 };

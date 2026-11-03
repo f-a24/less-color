@@ -3,7 +3,7 @@ import {
   type ColorType,
   formatColor,
   parseColor
-} from './color';
+} from './color.js';
 
 // cb は背景（color1）、cs は前景（color2）の 0〜1 の成分値
 type BlendModeType = (cb: number, cs: number) => number;

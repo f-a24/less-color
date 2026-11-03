@@ -8,7 +8,7 @@ import {
   parseColor,
   toAmount,
   toHSLA
-} from './color';
+} from './color.js';
 
 // 'absolute' は amount をそのまま加減算し、'relative' は現在の値に対する割合で加減算する
 export type MethodType = 'absolute' | 'relative';

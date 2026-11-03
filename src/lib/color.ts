@@ -4,8 +4,8 @@ import {
   rgb2hsl,
   hsl2rgb,
   type RGBType
-} from './convert';
-import namedColors from './named-colors';
+} from './convert.js';
+import namedColors from './named-colors.js';
 
 // r, g, b は 0〜255、a は 0〜1
 export type ColorType = { r: number; g: number; b: number; a: number };
@@ -92,9 +92,14 @@ const parseFunction = (str: string): ColorType | undefined => {
   const a = args.length === 4 ? parseArg(args[3], 1) : 1;
 
   // HSL は RGB に変換すると NaN が消えてしまうため、変換前に検証する
+  // 彩度・明度は CSS Color 4 と同じく、単位なしでも 0〜100 として扱う（50 と 50% は同じ）
   const values = m[1].startsWith('rgb')
     ? args.slice(0, 3).map(arg => parseArg(arg, 255))
-    : [parseHue(args[0]), parseArg(args[1], 1), parseArg(args[2], 1)];
+    : [
+        parseHue(args[0]),
+        parseArg(args[1], 100) / 100,
+        parseArg(args[2], 100) / 100
+      ];
   if ([...values, a].some(Number.isNaN)) return undefined;
 
   const [x, y, z] = values;
@@ -130,8 +135,9 @@ export const parseColor = (input: ColorInput): ColorType => {
   const str = input.trim().toLowerCase();
   if (str === 'transparent') return { r: 0, g: 0, b: 0, a: 0 };
 
+  // 'constructor' などプロトタイプのプロパティを色名と誤認しないよう hasOwn で判定する
   const color =
-    (namedColors[str] && parseHex(namedColors[str])) ||
+    (Object.hasOwn(namedColors, str) && parseHex(namedColors[str])) ||
     parseHex(str) ||
     parseFunction(str);
   if (!color) throw invalid(input);

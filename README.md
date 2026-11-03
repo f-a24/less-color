@@ -64,6 +64,7 @@ color('#336699').fade(50).alpha(); // 0.5
 - `#rgb` / `#rgba` / `#rrggbb` / `#rrggbbaa`（`#` は省略可）
 - `rgb()` / `rgba()` / `hsl()` / `hsla()`（カンマ区切りと `rgb(0 128 255 / 50%)` のようなスペース区切りの両方）
   - `hsl()` の色相は単位なし（度）と `deg` / `turn` / `rad` / `grad` に対応
+  - `hsl()` の彩度・明度は CSS Color 4 と同じく単位なしでも 0〜100 として扱います（`hsl(120 50 50)` は `hsl(120 50% 50%)` と同じ）
 - CSS の色名（`red`、`rebeccapurple` など 148 色）と `transparent`
 - `{ r, g, b, a }` のオブジェクト（`color()` の戻り値を含む）
 
@@ -148,7 +149,7 @@ color('#336699').fade(50).alpha(); // 0.5
 | `formatColor(color)` | `{ r, g, b, a }` を Less と同じ形式（`'#rrggbb'` または `'rgba(…)'`）にする |
 | `hex2rgb(hex)`       | `'#f80'` → `[255, 136, 0]`（4 桁・8 桁も可。アルファは捨てる）              |
 | `rgb2hex(rgb)`       | `[255, 136, 0]` → `'#ff8800'`（0〜255 に収めてから四捨五入）                |
-| `rgb2hsl(rgb)`       | RGB → `[h, s, l]`（h は 0〜360、s と l は 0〜1）                            |
+| `rgb2hsl(rgb)`       | RGB → `[h, s, l]`（h は 0〜360、s と l は 0〜1。範囲外の RGB はクランプ）   |
 | `hsl2rgb(hsl)`       | HSL → RGB（色相は負の値や 360 以上でも可）                                  |
 | `toRGB(rgb)`         | `number` の配列が 0〜255 に収まっているか検証する（範囲外は `RangeError`）  |
 | `toRGBValue(n)`      | `number` が 0〜255 に収まっているか検証する                                 |

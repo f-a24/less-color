@@ -6,8 +6,8 @@ import {
   formatAlpha,
   parseColor,
   toHSLA
-} from './color';
-import { toHexByte } from './convert';
+} from './color.js';
+import { toHexByte } from './convert.js';
 
 // 小数点以下 digits 桁に丸める（末尾の 0 は付けない）
 const round = (n: number, digits = 2) => Number(n.toFixed(digits));

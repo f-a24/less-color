@@ -1,4 +1,4 @@
-import { type ColorInput, parseColor, relativeLuminance } from './color';
+import { type ColorInput, parseColor, relativeLuminance } from './color.js';
 
 export type LumaType = (color: ColorInput) => number;
 // Less と同様にアルファを掛けた値を返す（0〜1）

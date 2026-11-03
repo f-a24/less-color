@@ -3,10 +3,11 @@ import {
   rgb2hex,
   hex2rgb,
   hsl2rgb,
+  rgb2hsl,
   toRGB,
   toRGBValue,
   type RGBType
-} from '../lib/convert';
+} from '../lib/convert.js';
 
 test('rgb2hex', () => {
   expect(rgb2hex([0, 0, 0])).toBe('#000000');
@@ -59,4 +60,16 @@ test('hex2rgb（短縮形）', () => {
   expect(hex2rgb('#000')).toStrictEqual([0, 0, 0]);
   expect(hex2rgb('#f80')).toStrictEqual([255, 136, 0]);
   expect(hex2rgb('f80')).toStrictEqual([255, 136, 0]);
+});
+
+test('rgb2hsl（範囲外の値はクランプ）', () => {
+  expect(rgb2hsl([300, -5, 0])).toStrictEqual(rgb2hsl([255, 0, 0]));
+});
+
+test('rgb2hex / rgb2hsl / hsl2rgb（NaN・Infinity は TypeError）', () => {
+  for (const n of [NaN, Infinity, -Infinity]) {
+    expect(() => rgb2hex([n, 0, 0])).toThrow(TypeError);
+    expect(() => rgb2hsl([0, n, 0])).toThrow(TypeError);
+    expect(() => hsl2rgb([0, 0, n])).toThrow(TypeError);
+  }
 });

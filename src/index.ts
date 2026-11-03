@@ -1,10 +1,10 @@
 // tree-shaking が効くよう、すべて名前付きエクスポートにする
-export { default as contrast } from './lib/contrast';
-export { default as tint } from './lib/tint';
-export { default as shade } from './lib/shade';
-export { default as luma } from './lib/luma';
-export { default as spin } from './lib/spin';
-export { default as mix } from './lib/mix';
+export { default as contrast } from './lib/contrast.js';
+export { default as tint } from './lib/tint.js';
+export { default as shade } from './lib/shade.js';
+export { default as luma } from './lib/luma.js';
+export { default as spin } from './lib/spin.js';
+export { default as mix } from './lib/mix.js';
 export {
   rgb2hex,
   hex2rgb,
@@ -12,8 +12,8 @@ export {
   hsl2rgb,
   toRGB,
   toRGBValue
-} from './lib/convert';
-export { parseColor, formatColor } from './lib/color';
+} from './lib/convert.js';
+export { parseColor, formatColor } from './lib/color.js';
 export {
   toHex,
   toRgb,
@@ -21,8 +21,8 @@ export {
   toHsl,
   toHslString,
   isValidColor
-} from './lib/output';
-export { color, Color } from './lib/chain';
+} from './lib/output.js';
+export { color, Color } from './lib/chain.js';
 export {
   saturate,
   desaturate,
@@ -32,7 +32,7 @@ export {
   fadeout,
   fade,
   greyscale
-} from './lib/adjust';
+} from './lib/adjust.js';
 export {
   hue,
   saturation,
@@ -42,7 +42,7 @@ export {
   blue,
   alpha,
   luminance
-} from './lib/channels';
+} from './lib/channels.js';
 export {
   multiply,
   screen,
@@ -53,14 +53,19 @@ export {
   exclusion,
   average,
   negation
-} from './lib/blend';
-export type { RGBType, RGBValue, HSLType } from './lib/convert';
-export type { ColorType, ColorInput, HSLAType, AmountType } from './lib/color';
-export type { AdjustType, MethodType } from './lib/adjust';
-export type { BlendType } from './lib/blend';
-export type { ContrastType } from './lib/contrast';
-export type { LumaType } from './lib/luma';
-export type { MixType } from './lib/mix';
-export type { ShadeType } from './lib/shade';
-export type { SpinType } from './lib/spin';
-export type { TintType } from './lib/tint';
+} from './lib/blend.js';
+export type { RGBType, RGBValue, HSLType } from './lib/convert.js';
+export type {
+  ColorType,
+  ColorInput,
+  HSLAType,
+  AmountType
+} from './lib/color.js';
+export type { AdjustType, MethodType } from './lib/adjust.js';
+export type { BlendType } from './lib/blend.js';
+export type { ContrastType } from './lib/contrast.js';
+export type { LumaType } from './lib/luma.js';
+export type { MixType } from './lib/mix.js';
+export type { ShadeType } from './lib/shade.js';
+export type { SpinType } from './lib/spin.js';
+export type { TintType } from './lib/tint.js';
