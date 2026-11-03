@@ -13,14 +13,15 @@ export const rgb2hex: Rgb2HexType = rgb =>
 export const hex2rgb: Hex2RgbType = hex => {
   let tmpHex = hex;
   if (hex.slice(0, 1) === '#') tmpHex = hex.slice(1);
-  if (hex.length === 3) {
+  // '#' を除いた後の文字列で短縮形（例: 'f00'）かどうかを判定する
+  if (tmpHex.length === 3) {
     tmpHex =
-      hex.slice(0, 1) +
-      hex.slice(0, 1) +
-      hex.slice(1, 2) +
-      hex.slice(1, 2) +
-      hex.slice(2, 3) +
-      hex.slice(2, 3);
+      tmpHex.slice(0, 1) +
+      tmpHex.slice(0, 1) +
+      tmpHex.slice(1, 2) +
+      tmpHex.slice(1, 2) +
+      tmpHex.slice(2, 3) +
+      tmpHex.slice(2, 3);
   }
 
   return [tmpHex.slice(0, 2), tmpHex.slice(2, 4), tmpHex.slice(4, 6)].map(str =>

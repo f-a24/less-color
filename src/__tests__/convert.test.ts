@@ -10,3 +10,9 @@ test('hex2rgb', () => {
   expect(hex2rgb('#000000')).toStrictEqual([0, 0, 0]);
   expect(hex2rgb('#ffffff')).toStrictEqual([255, 255, 255]);
 });
+
+test('hex2rgb（短縮形）', () => {
+  expect(hex2rgb('#000')).toStrictEqual([0, 0, 0]);
+  expect(hex2rgb('#f80')).toStrictEqual([255, 136, 0]);
+  expect(hex2rgb('f80')).toStrictEqual([255, 136, 0]);
+});
