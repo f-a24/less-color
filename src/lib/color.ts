@@ -34,14 +34,23 @@ export const toFinite = (n: number, label: string): number => {
   return n;
 };
 
+// CSS の数値の形式。Number() が受け付ける '0x10' や前後の空白、'Infinity' などは含まない
+const numberPattern = /^[+-]?(?:\d*\.\d+|\d+)(?:e[+-]?\d+)?$/i;
+
+// 文字列を数値に変換する。CSS の数値の形式でないか有限でなければ NaN を返す
+const parseNumber = (str: string) => {
+  const n = numberPattern.test(str) ? Number(str) : NaN;
+  return Number.isFinite(n) ? n : NaN;
+};
+
 /* 割合を数値に変換する（'10%' => 10） */
 export const toAmount = (v: AmountType): number => {
   if (typeof v === 'number') return toFinite(v, 'amount');
-  const str = v.endsWith('%') ? v.slice(0, -1) : v;
-  const n = Number(str);
-  if (str.trim() === '' || !Number.isFinite(n)) {
-    throw new TypeError(`Invalid amount: ${v}`);
-  }
+  const n =
+    typeof v === 'string'
+      ? parseNumber(v.endsWith('%') ? v.slice(0, -1) : v)
+      : NaN;
+  if (Number.isNaN(n)) throw new TypeError(`Invalid amount: ${v}`);
   return n;
 };
 
@@ -59,9 +68,9 @@ const parseHex = (hex: string): ColorType | undefined => {
 // 関数形式の引数を 1 つ数値に変換する。'%' 付きは scale を 100% として換算する
 // 不正な値は NaN を返す
 const parseArg = (arg: string, scale: number) => {
-  const n = Number(arg.endsWith('%') ? arg.slice(0, -1) : arg);
-  if (arg === '' || !Number.isFinite(n)) return NaN;
-  return arg.endsWith('%') ? (n * scale) / 100 : n;
+  const percent = arg.endsWith('%');
+  const n = parseNumber(percent ? arg.slice(0, -1) : arg);
+  return percent ? (n * scale) / 100 : n;
 };
 
 // CSS の角度の単位を度に換算する係数
@@ -76,30 +85,44 @@ const angleUnits: Record<string, number> = {
 const parseHue = (arg: string) => {
   // 'grad' は 'rad' でも終わるので、キーの順序（grad が先）に依存して判定する
   const unit = Object.keys(angleUnits).find(u => arg.endsWith(u));
-  const num = unit ? arg.slice(0, -unit.length) : arg;
-  const n = Number(num);
-  if (num === '' || !Number.isFinite(n)) return NaN;
+  const n = parseNumber(unit ? arg.slice(0, -unit.length) : arg);
   return n * angleUnits[unit ?? 'deg'];
+};
+
+/*
+ * 関数形式の中身を引数に分ける。CSS と同じく区切り方の混在は認めない
+ * - カンマ区切り: 'r, g, b' / 'r, g, b, a'
+ * - スペース区切り: 'r g b' / 'r g b / a'
+ */
+const splitArgs = (body: string): string[] | undefined => {
+  if (body.includes(',')) {
+    const args = body.split(/\s*,\s*/);
+    return args.length === 3 || args.length === 4 ? args : undefined;
+  }
+  const [main, alpha, ...rest] = body.split(/\s*\/\s*/);
+  const args = main.split(/\s+/);
+  if (args.length !== 3 || rest.length > 0) return undefined;
+  return alpha === undefined ? args : [...args, alpha];
 };
 
 const parseFunction = (str: string): ColorType | undefined => {
   const m = str.match(/^(rgba?|hsla?)\((.*)\)$/);
   if (!m) return undefined;
 
-  // カンマ区切りとスペース区切り（'rgb(0 128 255 / 50%)'）の両方を受け付ける
-  const args = m[2].trim().split(/\s*[,/]\s*|\s+/);
-  if (args.length !== 3 && args.length !== 4) return undefined;
+  const body = m[2].trim();
+  const args = splitArgs(body);
+  if (!args) return undefined;
   const a = args.length === 4 ? parseArg(args[3], 1) : 1;
 
   // HSL は RGB に変換すると NaN が消えてしまうため、変換前に検証する
-  // 彩度・明度は CSS Color 4 と同じく、単位なしでも 0〜100 として扱う（50 と 50% は同じ）
+  // 単位なしの彩度・明度は、カンマ区切りでは Less と同じく 0〜1 として扱い（0.5 と 50% は同じ）、
+  // スペース区切りでは CSS Color 4 と同じく 0〜100 として扱う（50 と 50% は同じ）
+  const legacy = body.includes(',');
+  const parseSL = (arg: string) =>
+    legacy ? parseArg(arg, 1) : parseArg(arg, 100) / 100;
   const values = m[1].startsWith('rgb')
     ? args.slice(0, 3).map(arg => parseArg(arg, 255))
-    : [
-        parseHue(args[0]),
-        parseArg(args[1], 100) / 100,
-        parseArg(args[2], 100) / 100
-      ];
+    : [parseHue(args[0]), parseSL(args[1]), parseSL(args[2])];
   if ([...values, a].some(Number.isNaN)) return undefined;
 
   const [x, y, z] = values;

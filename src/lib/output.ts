@@ -7,7 +7,7 @@ import {
   parseColor,
   toHSLA
 } from './color.js';
-import { toHexByte } from './convert.js';
+import { parseHexDigits, toHexByte } from './convert.js';
 
 // 小数点以下 digits 桁に丸める（末尾の 0 は付けない）
 const round = (n: number, digits = 2) => Number(n.toFixed(digits));
@@ -52,8 +52,15 @@ export const toHslString = (input: ColorInput): string => {
   return alpha < 1 ? `hsla(${hsl}, ${alpha})` : `hsl(${hsl})`;
 };
 
-/* parseColor が解析できる色かどうかを返す（例外は投げない） */
+/*
+ * parseColor が解析できる色かどうかを返す（例外は投げない）
+ * ただし '#' のない 16 進数は、'add' や 'face' のような単語を色と誤判定しないよう false を返す
+ */
 export const isValidColor = (input: unknown): input is ColorInput => {
+  if (typeof input === 'string') {
+    const str = input.trim();
+    if (!str.startsWith('#') && parseHexDigits(str)) return false;
+  }
   try {
     parseColor(input as ColorInput);
     return true;

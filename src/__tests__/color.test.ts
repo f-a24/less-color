@@ -46,6 +46,22 @@ test('parseColor（不正な入力）', () => {
     'rgb(1, 2, x)',
     'hsl(1, 2, 3, 4, 5)',
     'notacolor',
+    // Number() は受け付けるが CSS の数値ではない表記
+    'rgb(0x10, 0, 0)',
+    'rgb(0b1, 0, 0)',
+    'rgb(1., 2, 3)',
+    'rgb(Infinity, 0, 0)',
+    'rgb(1e999, 0, 0)',
+    'hsl(0x10, 50%, 50%)',
+    // 区切り方の混在
+    'rgb(1, 2 3)',
+    'rgb(1 2 3, 0.5)',
+    'rgb(1, 2, 3 / 0.5)',
+    'rgb(1 2 3 4)',
+    'rgb(1 2 / 3)',
+    'rgb(1 2 3 / 0.5 / 1)',
+    'rgb(1 2 3 /)',
+    'rgb(1, 2, 3,)',
     // Object.prototype のプロパティ名（入力は小文字化されるので小文字のもの）
     'constructor',
     '__proto__'
@@ -69,7 +85,11 @@ test('toAmount / toRatio', () => {
   expect(toAmount('10%')).toBe(10);
   expect(toRatio(0.43)).toBe(0.43);
   expect(toRatio('43%')).toBe(0.43);
-  expect(() => toAmount('abc%' as `${number}%`)).toThrow(TypeError);
+  expect(toAmount('1e1%')).toBe(10);
+  expect(toAmount('-.5%')).toBe(-0.5);
+  for (const bad of ['abc%', '%', '0x10%', ' 10%', '10 %', '0b1']) {
+    expect(() => toAmount(bad as `${number}%`)).toThrow(TypeError);
+  }
 });
 
 test('割合は数値と文字列のどちらでも指定できる', () => {
@@ -146,12 +166,19 @@ test('color() チェーン', () => {
   expect(lighten(c, 10)).toBe(lighten('#336699', 10));
 });
 
-test('hsl() の彩度・明度は単位なしでも 0〜100 として扱う（CSS Color 4）', () => {
+test('スペース区切りの hsl() の彩度・明度は単位なしでも 0〜100 として扱う（CSS Color 4）', () => {
   const expected = parseColor('hsl(120, 50%, 50%)');
   expect(parseColor('hsl(120 50 50)')).toStrictEqual(expected);
-  expect(parseColor('hsl(120, 50, 50)')).toStrictEqual(expected);
   expect(parseColor('hsla(120 50 50 / 0.5)')).toStrictEqual({
     ...expected,
     a: 0.5
   });
+});
+
+test('カンマ区切りの hsl() の彩度・明度は単位なしなら 0〜1 として扱う（Less と同じ）', () => {
+  const expected = parseColor('hsl(120, 50%, 50%)');
+  expect(parseColor('hsl(120, 0.5, 0.5)')).toStrictEqual(expected);
+  expect(parseColor('hsl(120, 50%, 0.5)')).toStrictEqual(expected);
+  // 1 を超える値はクランプされる
+  expect(parseColor('hsl(120, 50, 50)')).toStrictEqual(parseColor('#ffffff'));
 });

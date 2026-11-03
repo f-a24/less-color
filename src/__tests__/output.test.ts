@@ -73,6 +73,16 @@ test('isValidColor', () => {
   }
 });
 
+test('isValidColor（# のない 16 進数は無効）', () => {
+  for (const c of ['add', 'face', ' f80 ', 'ff8800']) {
+    expect(isValidColor(c)).toBe(false);
+  }
+  // 色名と '#' 付きの 16 進数は有効なまま
+  for (const c of ['tan', 'red', ' #add ', '#FACE']) {
+    expect(isValidColor(c)).toBe(true);
+  }
+});
+
 test('Color の出力メソッド', () => {
   const c = color('#336699').fade(50);
   expect(c.toHex()).toBe('#33669980');
