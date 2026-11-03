@@ -14,21 +14,12 @@ test('rgb2hex', () => {
 });
 
 test('rgb2hex（四捨五入）', () => {
-  expect(rgb2hex(toRGB([127.5, 127.4, 101.99999]))).toBe('#807f66');
+  expect(rgb2hex([127.5, 127.4, 101.99999])).toBe('#807f66');
 });
 
-test('rgb2hex（JavaScript から範囲外の値を渡した場合はクランプ）', () => {
-  expect(rgb2hex([300, -5, 128] as unknown as RGBType)).toBe('#ff0080');
-});
-
-test('RGBType（型で範囲外の値を弾く）', () => {
-  // @ts-expect-error 256 は 0〜255 の範囲外
-  const over: RGBType = [256, 0, 0];
-  // @ts-expect-error 負の値は範囲外
-  const negative: RGBType = [-1, 0, 0];
-  // @ts-expect-error 検証していない number は渡せない
-  const unchecked: RGBType = [0.5 * 255, 0, 0];
-  expect([over, negative, unchecked]).toHaveLength(3);
+test('rgb2hex（範囲外の値はクランプ）', () => {
+  const rgb: RGBType = [300, -5, 128];
+  expect(rgb2hex(rgb)).toBe('#ff0080');
 });
 
 test('toRGBValue / toRGB', () => {
@@ -43,9 +34,15 @@ test('toRGBValue / toRGB', () => {
 });
 
 test('hex2rgb（不正な入力）', () => {
-  for (const hex of ['zzz', '#12', '#12345', '#ff000080', '']) {
+  for (const hex of ['zzz', '#12', '#12345', '#1234567', '##f80', '']) {
     expect(() => hex2rgb(hex)).toThrow(TypeError);
   }
+});
+
+test('hex2rgb（アルファ付きの形式はアルファを捨てる）', () => {
+  expect(hex2rgb('#ff000080')).toStrictEqual([255, 0, 0]);
+  expect(hex2rgb('#f808')).toStrictEqual([255, 136, 0]);
+  expect(hex2rgb('F80')).toStrictEqual([255, 136, 0]);
 });
 
 test('hsl2rgb（負・360 以上の色相）', () => {

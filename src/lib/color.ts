@@ -1,4 +1,10 @@
-import { rgb2hex, rgb2hsl, hsl2rgb, type RGBType } from './convert';
+import {
+  parseHexDigits,
+  rgb2hex,
+  rgb2hsl,
+  hsl2rgb,
+  type RGBType
+} from './convert';
 import namedColors from './named-colors';
 
 // r, g, b は 0〜255、a は 0〜1
@@ -44,21 +50,10 @@ export const toRatio = (v: AmountType): number =>
   typeof v === 'string' && v.endsWith('%') ? toAmount(v) / 100 : toAmount(v);
 
 const parseHex = (hex: string): ColorType | undefined => {
-  if (!/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(hex)) {
-    return undefined;
-  }
-  // 短縮形（3 桁・4 桁）は各桁を 2 回繰り返して展開する
-  const full =
-    hex.length <= 4
-      ? hex
-          .split('')
-          .map(c => c + c)
-          .join('')
-      : hex;
-  const [r, g, b, a = 255] = (full.match(/../g) ?? []).map(s =>
-    parseInt(s, 16)
-  );
-  return { r, g, b, a: a / 255 };
+  const rgba = parseHexDigits(hex);
+  if (!rgba) return undefined;
+  const [r, g, b, a] = rgba;
+  return { r, g, b, a };
 };
 
 // 関数形式の引数を 1 つ数値に変換する。'%' 付きは scale を 100% として換算する
@@ -136,20 +131,22 @@ export const parseColor = (input: ColorInput): ColorType => {
   if (str === 'transparent') return { r: 0, g: 0, b: 0, a: 0 };
 
   const color =
-    (namedColors[str] && parseHex(namedColors[str].slice(1))) ||
-    parseHex(str.startsWith('#') ? str.slice(1) : str) ||
+    (namedColors[str] && parseHex(namedColors[str])) ||
+    parseHex(str) ||
     parseFunction(str);
   if (!color) throw invalid(input);
   return color;
 };
+
+/* アルファを Less の出力精度（小数点以下 8 桁、丸め誤差対策の微小値加算も含む）に合わせる */
+export const formatAlpha = (a: number) => clamp(Number((a + 2e-16).toFixed(8)));
 
 /*
  * 色を文字列にする
  * Less と同様に、不透明なら '#rrggbb'、半透明なら 'rgba(r, g, b, a)' を返す
  */
 export const formatColor = ({ r, g, b, a }: ColorType): string => {
-  // Less の出力精度（小数点以下 8 桁、丸め誤差対策の微小値加算も含む）に合わせる
-  const alpha = clamp(Number((a + 2e-16).toFixed(8)));
+  const alpha = formatAlpha(a);
   if (alpha < 1) {
     const rgb = [r, g, b].map(v => Math.round(clamp(v, 0, 255)));
     return `rgba(${rgb.join(', ')}, ${alpha})`;

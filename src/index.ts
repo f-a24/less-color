@@ -14,6 +14,14 @@ export {
   toRGBValue
 } from './lib/convert';
 export { parseColor, formatColor } from './lib/color';
+export {
+  toHex,
+  toRgb,
+  toRgbString,
+  toHsl,
+  toHslString,
+  isValidColor
+} from './lib/output';
 export { color, Color } from './lib/chain';
 export {
   saturate,

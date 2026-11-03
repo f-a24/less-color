@@ -1,16 +1,6 @@
-// 0 から N-1 までの数値リテラルの union を生成する
-type Enumerate<
-  N extends number,
-  Acc extends number[] = []
-> = Acc['length'] extends N
-  ? Acc[number]
-  : Enumerate<N, [...Acc, Acc['length']]>;
-
-declare const rgbValueBrand: unique symbol;
-// toRGBValue / toRGB で 0〜255 の範囲にあることを検証済みの数値（小数も可）
-type CheckedRGBValue = number & { readonly [rgbValueBrand]: true };
-// 0〜255 の整数リテラルはそのまま書けるようにし、計算結果などは検証を通す
-export type RGBValue = Enumerate<256> | CheckedRGBValue;
+// 0〜255 の数値（小数も可）。範囲外の値は各関数がクランプする
+// 範囲を検証したい場合は toRGBValue / toRGB を通す
+export type RGBValue = number;
 // r, g, b は 0〜255
 export type RGBType = [r: RGBValue, g: RGBValue, b: RGBValue];
 // h は 0〜360、s と l は 0〜1
@@ -25,7 +15,7 @@ export const toRGBValue = (n: number): RGBValue => {
   if (!(n >= 0 && n <= 255)) {
     throw new RangeError(`RGB value must be between 0 and 255: ${n}`);
   }
-  return n as RGBValue;
+  return n;
 };
 
 /* 数値の配列を RGBType として検証する */
@@ -37,38 +27,44 @@ export const toRGB = (rgb: readonly [number, number, number]): RGBType => [
 
 /* RGB => HEX */
 // Less と同様に 0〜255 に収めてから四捨五入する
-// （範囲外の値は型で弾くが、JavaScript からの呼び出しに備えて実行時もクランプする）
-export const rgb2hex: Rgb2HexType = rgb =>
-  `#${rgb
-    .map(v => {
-      const n = Math.round(Math.min(255, Math.max(0, v)));
-      return `0${n.toString(16)}`.slice(-2);
-    })
-    .join('')}`;
+export const toHexByte = (v: number) => {
+  const n = Math.round(Math.min(255, Math.max(0, v)));
+  return `0${n.toString(16)}`.slice(-2);
+};
 
-/* HEX => RGB */
+/* RGB => HEX */
+export const rgb2hex: Rgb2HexType = rgb => `#${rgb.map(toHexByte).join('')}`;
+
+/*
+ * 16 進数の色を [r, g, b, a] に変換する（r, g, b は 0〜255、a は 0〜1）
+ * 'rgb' / 'rgba' / 'rrggbb' / 'rrggbbaa'（'#' は省略可）に対応し、不正な形式は undefined を返す
+ */
+export const parseHexDigits = (
+  hex: string
+): [r: number, g: number, b: number, a: number] | undefined => {
+  const digits = hex.startsWith('#') ? hex.slice(1) : hex;
+  if (!/^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(digits)) {
+    return undefined;
+  }
+  // 短縮形（3 桁・4 桁）は各桁を 2 回繰り返して展開する
+  const full =
+    digits.length <= 4
+      ? digits
+          .split('')
+          .map(c => c + c)
+          .join('')
+      : digits;
+  const [r, g, b, a = 255] = (full.match(/../g) ?? []).map(s =>
+    parseInt(s, 16)
+  );
+  return [r, g, b, a / 255];
+};
+
+/* HEX => RGB（アルファ付きの形式も受け付けるが、アルファは捨てる） */
 export const hex2rgb: Hex2RgbType = hex => {
-  let tmpHex = hex;
-  if (hex.slice(0, 1) === '#') tmpHex = hex.slice(1);
-  // 3 桁または 6 桁の 16 進数以外は不正な入力として扱う
-  if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(tmpHex)) {
-    throw new TypeError(`Invalid hex color: ${hex}`);
-  }
-  // '#' を除いた後の文字列で短縮形（例: 'f00'）かどうかを判定する
-  if (tmpHex.length === 3) {
-    tmpHex =
-      tmpHex.slice(0, 1) +
-      tmpHex.slice(0, 1) +
-      tmpHex.slice(1, 2) +
-      tmpHex.slice(1, 2) +
-      tmpHex.slice(2, 3) +
-      tmpHex.slice(2, 3);
-  }
-
-  // 2 桁の 16 進数なので必ず 0〜255 に収まる
-  return [tmpHex.slice(0, 2), tmpHex.slice(2, 4), tmpHex.slice(4, 6)].map(str =>
-    parseInt(str, 16)
-  ) as RGBType;
+  const rgba = parseHexDigits(hex);
+  if (!rgba) throw new TypeError(`Invalid hex color: ${hex}`);
+  return [rgba[0], rgba[1], rgba[2]];
 };
 
 /* RGB => HSL */
@@ -129,10 +125,11 @@ export const hsl2rgb: Hsl2RgbType = hsl => {
   const m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
   const m1 = l * 2 - m2;
 
-  // 計算上は 0〜255 に収まるので、丸め誤差だけ吸収して RGBType にする
-  return [
+  // 計算上は 0〜255 に収まるので、丸め誤差だけ吸収する
+  const [r, g, b] = [
     hue(h + 1 / 3, m1, m2) * 255,
     hue(h, m1, m2) * 255,
     hue(h - 1 / 3, m1, m2) * 255
-  ].map(v => Math.min(255, Math.max(0, v))) as RGBType;
+  ].map(v => Math.min(255, Math.max(0, v)));
+  return [r, g, b];
 };

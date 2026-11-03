@@ -28,6 +28,7 @@ import {
   softlightColor
 } from './blend';
 import * as channels from './channels';
+import * as output from './output';
 import { pickContrast } from './contrast';
 import luma from './luma';
 import { mixColor } from './mix';
@@ -167,6 +168,26 @@ export class Color implements ColorType {
   /* 丸めていない値をプレーンなオブジェクトで返す */
   toObject(): ColorType {
     return { r: this.r, g: this.g, b: this.b, a: this.a };
+  }
+  /* '#rrggbb' または '#rrggbbaa' を返す */
+  toHex() {
+    return output.toHex(this);
+  }
+  /* 0〜255 の整数に丸めた { r, g, b, a } を返す */
+  toRgb() {
+    return output.toRgb(this);
+  }
+  /* 'rgb(r, g, b)' または 'rgba(r, g, b, a)' を返す */
+  toRgbString() {
+    return output.toRgbString(this);
+  }
+  /* 丸めていない { h, s, l, a } を返す */
+  toHsl() {
+    return output.toHsl(this);
+  }
+  /* 'hsl(h, s%, l%)' または 'hsla(h, s%, l%, a)' を返す */
+  toHslString() {
+    return output.toHslString(this);
   }
 }
 
