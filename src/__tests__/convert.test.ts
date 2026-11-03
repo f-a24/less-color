@@ -1,3 +1,4 @@
+import { expect, test } from 'bun:test';
 import { rgb2hex, hex2rgb } from '../lib/convert';
 
 test('rgb2hex', () => {

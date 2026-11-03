@@ -1,9 +1,15 @@
 {
-    "compilerOptions": {
-      "sourceMap": true,
-      "target": "es5",
-      "module": "esnext",
-      "moduleResolution": "node",
-      "lib": ["esnext", "dom"]
-    }
-  }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM"],
+    "types": ["bun"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "scripts"]
+}
