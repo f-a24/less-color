@@ -16,64 +16,82 @@ const overlayMode: BlendModeType = (cb, cs) => {
   const cb2 = cb * 2;
   return cb2 <= 1 ? multiplyMode(cb2, cs) : screenMode(cb2 - 1, cs);
 };
-
-const modes = {
-  multiply: multiplyMode,
-  screen: screenMode,
-  overlay: overlayMode,
-  softlight: (cb, cs) => {
-    let d = 1;
-    let e = cb;
-    if (cs > 0.5) {
-      e = 1;
-      d = cb > 0.25 ? Math.sqrt(cb) : ((16 * cb - 12) * cb + 4) * cb;
-    }
-    return cb - (1 - 2 * cs) * e * (d - cb);
-  },
-  hardlight: (cb, cs) => overlayMode(cs, cb),
-  difference: (cb, cs) => Math.abs(cb - cs),
-  exclusion: (cb, cs) => cb + cs - 2 * cb * cs,
-  // 以下は W3C の仕様にはない Less 独自のモード
-  average: (cb, cs) => (cb + cs) / 2,
-  negation: (cb, cs) => 1 - Math.abs(cb + cs - 1)
-} satisfies Record<string, BlendModeType>;
-
-export type BlendModeName = keyof typeof modes;
+const softlightMode: BlendModeType = (cb, cs) => {
+  let d = 1;
+  let e = cb;
+  if (cs > 0.5) {
+    e = 1;
+    d = cb > 0.25 ? Math.sqrt(cb) : ((16 * cb - 12) * cb + 4) * cb;
+  }
+  return cb - (1 - 2 * cs) * e * (d - cb);
+};
+const hardlightMode: BlendModeType = (cb, cs) => overlayMode(cs, cb);
+const differenceMode: BlendModeType = (cb, cs) => Math.abs(cb - cs);
+const exclusionMode: BlendModeType = (cb, cs) => cb + cs - 2 * cb * cs;
+// 以下は W3C の仕様にはない Less 独自のモード
+const averageMode: BlendModeType = (cb, cs) => (cb + cs) / 2;
+const negationMode: BlendModeType = (cb, cs) => 1 - Math.abs(cb + cs - 1);
 
 // W3C Compositing の計算式でアルファを含めて合成する
-const blend =
-  (mode: BlendModeType): BlendColorType =>
-  (c1, c2) => {
-    const ab = c1.a;
-    const as = c2.a;
-    const ar = as + ab * (1 - as);
+const blend = (
+  mode: BlendModeType,
+  c1: ColorType,
+  c2: ColorType
+): ColorType => {
+  const ab = c1.a;
+  const as = c2.a;
+  const ar = as + ab * (1 - as);
 
-    const [r, g, b] = (['r', 'g', 'b'] as const).map(key => {
-      const cb = c1[key] / 255;
-      const cs = c2[key] / 255;
-      let cr = mode(cb, cs);
-      if (ar) cr = (as * cs + ab * (cb - as * (cb + cs - cr))) / ar;
-      return cr * 255;
-    });
-    return { r, g, b, a: ar };
-  };
+  const [r, g, b] = (['r', 'g', 'b'] as const).map(key => {
+    const cb = c1[key] / 255;
+    const cs = c2[key] / 255;
+    let cr = mode(cb, cs);
+    if (ar) cr = (as * cs + ab * (cb - as * (cb + cs - cr))) / ar;
+    return cr * 255;
+  });
+  return { r, g, b, a: ar };
+};
 
-// 内部用。モード名から、丸めずに ColorType のまま返す合成関数を引く
-export const blendColor = Object.fromEntries(
-  Object.entries(modes).map(([name, mode]) => [name, blend(mode)])
-) as Record<BlendModeName, BlendColorType>;
+// 内部用。丸めずに ColorType のまま返す
+// tree-shaking で消せるよう、トップレベルで関数を呼んで作らずに関数式で定義する
+export const multiplyColor: BlendColorType = (c1, c2) =>
+  blend(multiplyMode, c1, c2);
+export const screenColor: BlendColorType = (c1, c2) =>
+  blend(screenMode, c1, c2);
+export const overlayColor: BlendColorType = (c1, c2) =>
+  blend(overlayMode, c1, c2);
+export const softlightColor: BlendColorType = (c1, c2) =>
+  blend(softlightMode, c1, c2);
+export const hardlightColor: BlendColorType = (c1, c2) =>
+  blend(hardlightMode, c1, c2);
+export const differenceColor: BlendColorType = (c1, c2) =>
+  blend(differenceMode, c1, c2);
+export const exclusionColor: BlendColorType = (c1, c2) =>
+  blend(exclusionMode, c1, c2);
+export const averageColor: BlendColorType = (c1, c2) =>
+  blend(averageMode, c1, c2);
+export const negationColor: BlendColorType = (c1, c2) =>
+  blend(negationMode, c1, c2);
 
-const publish =
-  (name: BlendModeName): BlendType =>
-  (color1, color2) =>
-    formatColor(blendColor[name](parseColor(color1), parseColor(color2)));
+// 内部用の関数を呼び、色を受け取って文字列を返す
+const run = (fn: BlendColorType, color1: ColorInput, color2: ColorInput) =>
+  formatColor(fn(parseColor(color1), parseColor(color2)));
 
-export const multiply = publish('multiply');
-export const screen = publish('screen');
-export const overlay = publish('overlay');
-export const softlight = publish('softlight');
-export const hardlight = publish('hardlight');
-export const difference = publish('difference');
-export const exclusion = publish('exclusion');
-export const average = publish('average');
-export const negation = publish('negation');
+export const multiply: BlendType = (color1, color2) =>
+  run(multiplyColor, color1, color2);
+export const screen: BlendType = (color1, color2) =>
+  run(screenColor, color1, color2);
+export const overlay: BlendType = (color1, color2) =>
+  run(overlayColor, color1, color2);
+export const softlight: BlendType = (color1, color2) =>
+  run(softlightColor, color1, color2);
+export const hardlight: BlendType = (color1, color2) =>
+  run(hardlightColor, color1, color2);
+export const difference: BlendType = (color1, color2) =>
+  run(differenceColor, color1, color2);
+export const exclusion: BlendType = (color1, color2) =>
+  run(exclusionColor, color1, color2);
+export const average: BlendType = (color1, color2) =>
+  run(averageColor, color1, color2);
+export const negation: BlendType = (color1, color2) =>
+  run(negationColor, color1, color2);

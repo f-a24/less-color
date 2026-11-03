@@ -1,13 +1,10 @@
-import contrast from './lib/contrast';
-import * as convert from './lib/convert';
-import tint from './lib/tint';
-import shade from './lib/shade';
-import luma from './lib/luma';
-import spin from './lib/spin';
-import mix from './lib/mix';
-
-// tree-shaking が効くように名前付きでもエクスポートする
-export { contrast, convert, tint, shade, luma, spin, mix };
+// tree-shaking が効くよう、すべて名前付きエクスポートにする
+export { default as contrast } from './lib/contrast';
+export { default as tint } from './lib/tint';
+export { default as shade } from './lib/shade';
+export { default as luma } from './lib/luma';
+export { default as spin } from './lib/spin';
+export { default as mix } from './lib/mix';
 export {
   rgb2hex,
   hex2rgb,
@@ -59,7 +56,3 @@ export type { MixType } from './lib/mix';
 export type { ShadeType } from './lib/shade';
 export type { SpinType } from './lib/spin';
 export type { TintType } from './lib/tint';
-
-// 既存の利用者向けに従来のデフォルトエクスポートも残す
-// （tree-shaking を妨げないよう、新しい関数は名前付きエクスポートのみ）
-export default { contrast, convert, tint, shade, luma, spin, mix };

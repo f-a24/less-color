@@ -28,13 +28,14 @@ mix('red', 'rgba(0, 0, 255, 0.5)'); // 'rgba(191, 0, 64, 0.75)'
 hue('#336699'); // 210
 ```
 
-従来どおりデフォルトエクスポートからも使えます（ただし、デフォルトエクスポートに含まれるのは `contrast` / `convert` / `tint` / `shade` / `luma` / `spin` / `mix` だけです）。
+tree-shaking が効くよう、エクスポートはすべて名前付きです（デフォルトエクスポートはありません）。
+まとめて扱いたい場合は名前空間としてインポートします。
 
 ```ts
-import lf from 'less-functions';
+import * as lf from 'less-functions';
 
 lf.mix('#000000', '#ffffff');
-lf.convert.hex2rgb('#f80'); // [255, 136, 0]
+lf.hex2rgb('#f80'); // [255, 136, 0]
 ```
 
 ## 関数をつなげて使う（`color()`）

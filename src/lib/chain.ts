@@ -16,7 +16,17 @@ import {
   lightenColor,
   saturateColor
 } from './adjust';
-import { type BlendModeName, blendColor } from './blend';
+import {
+  averageColor,
+  differenceColor,
+  exclusionColor,
+  hardlightColor,
+  multiplyColor,
+  negationColor,
+  overlayColor,
+  screenColor,
+  softlightColor
+} from './blend';
 import * as channels from './channels';
 import { pickContrast } from './contrast';
 import luma from './luma';
@@ -92,35 +102,32 @@ export class Color implements ColorType {
   }
 
   // ブレンド（this を背景、other を前景として合成する）
-  private blend(name: BlendModeName, other: ColorInput) {
-    return new Color(blendColor[name](this, parseColor(other)));
-  }
   multiply(other: ColorInput) {
-    return this.blend('multiply', other);
+    return new Color(multiplyColor(this, parseColor(other)));
   }
   screen(other: ColorInput) {
-    return this.blend('screen', other);
+    return new Color(screenColor(this, parseColor(other)));
   }
   overlay(other: ColorInput) {
-    return this.blend('overlay', other);
+    return new Color(overlayColor(this, parseColor(other)));
   }
   softlight(other: ColorInput) {
-    return this.blend('softlight', other);
+    return new Color(softlightColor(this, parseColor(other)));
   }
   hardlight(other: ColorInput) {
-    return this.blend('hardlight', other);
+    return new Color(hardlightColor(this, parseColor(other)));
   }
   difference(other: ColorInput) {
-    return this.blend('difference', other);
+    return new Color(differenceColor(this, parseColor(other)));
   }
   exclusion(other: ColorInput) {
-    return this.blend('exclusion', other);
+    return new Color(exclusionColor(this, parseColor(other)));
   }
   average(other: ColorInput) {
-    return this.blend('average', other);
+    return new Color(averageColor(this, parseColor(other)));
   }
   negation(other: ColorInput) {
-    return this.blend('negation', other);
+    return new Color(negationColor(this, parseColor(other)));
   }
 
   // 成分の取得
