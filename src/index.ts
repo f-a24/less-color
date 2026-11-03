@@ -17,6 +17,7 @@ export {
   toRGBValue
 } from './lib/convert';
 export { parseColor, formatColor } from './lib/color';
+export { color, Color } from './lib/chain';
 export {
   saturate,
   desaturate,
@@ -49,7 +50,7 @@ export {
   negation
 } from './lib/blend';
 export type { RGBType, RGBValue, HSLType } from './lib/convert';
-export type { ColorType, HSLAType, AmountType } from './lib/color';
+export type { ColorType, ColorInput, HSLAType, AmountType } from './lib/color';
 export type { AdjustType, MethodType } from './lib/adjust';
 export type { BlendType } from './lib/blend';
 export type { ContrastType } from './lib/contrast';

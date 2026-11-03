@@ -1,8 +1,14 @@
-import { formatColor, parseColor } from './color';
+import {
+  type ColorInput,
+  type ColorType,
+  formatColor,
+  parseColor
+} from './color';
 
 // cb は背景（color1）、cs は前景（color2）の 0〜1 の成分値
 type BlendModeType = (cb: number, cs: number) => number;
-export type BlendType = (color1: string, color2: string) => string;
+export type BlendType = (color1: ColorInput, color2: ColorInput) => string;
+type BlendColorType = (c1: ColorType, c2: ColorType) => ColorType;
 
 const multiplyMode: BlendModeType = (cb, cs) => cb * cs;
 const screenMode: BlendModeType = (cb, cs) => cb + cs - cb * cs;
@@ -32,12 +38,12 @@ const modes = {
   negation: (cb, cs) => 1 - Math.abs(cb + cs - 1)
 } satisfies Record<string, BlendModeType>;
 
+export type BlendModeName = keyof typeof modes;
+
 // W3C Compositing の計算式でアルファを含めて合成する
 const blend =
-  (mode: BlendModeType): BlendType =>
-  (color1, color2) => {
-    const c1 = parseColor(color1);
-    const c2 = parseColor(color2);
+  (mode: BlendModeType): BlendColorType =>
+  (c1, c2) => {
     const ab = c1.a;
     const as = c2.a;
     const ar = as + ab * (1 - as);
@@ -49,15 +55,25 @@ const blend =
       if (ar) cr = (as * cs + ab * (cb - as * (cb + cs - cr))) / ar;
       return cr * 255;
     });
-    return formatColor({ r, g, b, a: ar });
+    return { r, g, b, a: ar };
   };
 
-export const multiply = blend(modes.multiply);
-export const screen = blend(modes.screen);
-export const overlay = blend(modes.overlay);
-export const softlight = blend(modes.softlight);
-export const hardlight = blend(modes.hardlight);
-export const difference = blend(modes.difference);
-export const exclusion = blend(modes.exclusion);
-export const average = blend(modes.average);
-export const negation = blend(modes.negation);
+// 内部用。モード名から、丸めずに ColorType のまま返す合成関数を引く
+export const blendColor = Object.fromEntries(
+  Object.entries(modes).map(([name, mode]) => [name, blend(mode)])
+) as Record<BlendModeName, BlendColorType>;
+
+const publish =
+  (name: BlendModeName): BlendType =>
+  (color1, color2) =>
+    formatColor(blendColor[name](parseColor(color1), parseColor(color2)));
+
+export const multiply = publish('multiply');
+export const screen = publish('screen');
+export const overlay = publish('overlay');
+export const softlight = publish('softlight');
+export const hardlight = publish('hardlight');
+export const difference = publish('difference');
+export const exclusion = publish('exclusion');
+export const average = publish('average');
+export const negation = publish('negation');

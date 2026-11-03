@@ -3,6 +3,8 @@ import namedColors from './named-colors';
 
 // r, g, b は 0〜255、a は 0〜1
 export type ColorType = { r: number; g: number; b: number; a: number };
+// 色を受け取る関数に渡せる値。ColorType を渡すと小数の精度を保ったまま計算できる
+export type ColorInput = string | ColorType;
 // h は 0〜360、s, l, a は 0〜1
 export type HSLAType = { h: number; s: number; l: number; a: number };
 // 割合の指定。10 と '10%' は同じ意味になる（Less と同じ）
@@ -15,14 +17,23 @@ export const clamp = (v: number, min = 0, max = 1) =>
 const toRGBType = ({ r, g, b }: ColorType) =>
   [clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255)] as RGBType;
 
-const invalid = (input: string) => new TypeError(`Invalid color: ${input}`);
+const invalid = (input: unknown) =>
+  new TypeError(`Invalid color: ${JSON.stringify(input)}`);
+
+/* 有限の数値であることを検証する。NaN や Infinity は TypeError */
+export const toFinite = (n: number, label: string): number => {
+  if (typeof n !== 'number' || !Number.isFinite(n)) {
+    throw new TypeError(`Invalid ${label}: ${n}`);
+  }
+  return n;
+};
 
 /* 割合を数値に変換する（'10%' => 10） */
 export const toAmount = (v: AmountType): number => {
-  if (typeof v === 'number') return v;
+  if (typeof v === 'number') return toFinite(v, 'amount');
   const str = v.endsWith('%') ? v.slice(0, -1) : v;
   const n = Number(str);
-  if (str.trim() === '' || Number.isNaN(n)) {
+  if (str.trim() === '' || !Number.isFinite(n)) {
     throw new TypeError(`Invalid amount: ${v}`);
   }
   return n;
@@ -51,10 +62,29 @@ const parseHex = (hex: string): ColorType | undefined => {
 };
 
 // 関数形式の引数を 1 つ数値に変換する。'%' 付きは scale を 100% として換算する
+// 不正な値は NaN を返す
 const parseArg = (arg: string, scale: number) => {
   const n = Number(arg.endsWith('%') ? arg.slice(0, -1) : arg);
-  if (arg === '' || Number.isNaN(n)) return NaN;
+  if (arg === '' || !Number.isFinite(n)) return NaN;
   return arg.endsWith('%') ? (n * scale) / 100 : n;
+};
+
+// CSS の角度の単位を度に換算する係数
+const angleUnits: Record<string, number> = {
+  deg: 1,
+  grad: 360 / 400,
+  rad: 180 / Math.PI,
+  turn: 360
+};
+
+// 色相を度で返す。単位なしは度として扱う。不正な値は NaN を返す
+const parseHue = (arg: string) => {
+  // 'grad' は 'rad' でも終わるので、キーの順序（grad が先）に依存して判定する
+  const unit = Object.keys(angleUnits).find(u => arg.endsWith(u));
+  const num = unit ? arg.slice(0, -unit.length) : arg;
+  const n = Number(num);
+  if (num === '' || !Number.isFinite(n)) return NaN;
+  return n * angleUnits[unit ?? 'deg'];
 };
 
 const parseFunction = (str: string): ColorType | undefined => {
@@ -66,19 +96,16 @@ const parseFunction = (str: string): ColorType | undefined => {
   if (args.length !== 3 && args.length !== 4) return undefined;
   const a = args.length === 4 ? parseArg(args[3], 1) : 1;
 
-  let color: ColorType;
-  if (m[1].startsWith('rgb')) {
-    const [r, g, b] = args.slice(0, 3).map(arg => parseArg(arg, 255));
-    color = { r, g, b, a };
-  } else {
-    const h = parseArg(args[0].replace(/deg$/, ''), 360);
-    const s = parseArg(args[1], 1);
-    const l = parseArg(args[2], 1);
-    color = fromHSLA({ h, s, l, a });
-  }
+  // HSL は RGB に変換すると NaN が消えてしまうため、変換前に検証する
+  const values = m[1].startsWith('rgb')
+    ? args.slice(0, 3).map(arg => parseArg(arg, 255))
+    : [parseHue(args[0]), parseArg(args[1], 1), parseArg(args[2], 1)];
+  if ([...values, a].some(Number.isNaN)) return undefined;
 
-  const values = [color.r, color.g, color.b, color.a];
-  if (values.some(Number.isNaN)) return undefined;
+  const [x, y, z] = values;
+  const color = m[1].startsWith('rgb')
+    ? { r: x, g: y, b: z, a }
+    : fromHSLA({ h: x, s: y, l: z, a });
   return {
     r: clamp(color.r, 0, 255),
     g: clamp(color.g, 0, 255),
@@ -87,12 +114,24 @@ const parseFunction = (str: string): ColorType | undefined => {
   };
 };
 
+// ColorType を検証してコピーする。Less と同じく途中結果の範囲外の値はクランプしない
+const parseObject = (input: ColorType): ColorType => {
+  const { r, g, b, a } = input;
+  if (![r, g, b, a].every(v => typeof v === 'number' && Number.isFinite(v))) {
+    throw invalid(input);
+  }
+  return { r, g, b, a };
+};
+
 /*
- * 色の文字列を解析する
- * 対応形式: '#rgb' / '#rgba' / '#rrggbb' / '#rrggbbaa'（'#' は省略可）、
+ * 色を解析する
+ * 文字列の対応形式: '#rgb' / '#rgba' / '#rrggbb' / '#rrggbbaa'（'#' は省略可）、
  * 'rgb()' / 'rgba()' / 'hsl()' / 'hsla()'、CSS の色名、'transparent'
+ * ColorType（color() の戻り値を含む）はそのまま受け付ける
  */
-export const parseColor = (input: string): ColorType => {
+export const parseColor = (input: ColorInput): ColorType => {
+  if (typeof input === 'object' && input !== null) return parseObject(input);
+  if (typeof input !== 'string') throw invalid(input);
   const str = input.trim().toLowerCase();
   if (str === 'transparent') return { r: 0, g: 0, b: 0, a: 0 };
 

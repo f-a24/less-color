@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import less from 'less';
 import * as lf from '../index';
 
-const { contrast, mix, tint, shade, spin } = lf;
+const { color, contrast, mix, tint, shade, spin } = lf;
 
 // Less 本家で式を評価し、出力された値を返す
 const evalLess = async (expr: string) => {
@@ -172,6 +172,57 @@ describe('Less 本家との照合', () => {
     for (const input of inputs) {
       // mix(x, x) は x 自身になり、Less では常に hex か rgba() で出力される
       expect(mix(input, input)).toBe(await evalLess(`mix(${input}, ${input})`));
+    }
+  });
+
+  // Less は入れ子の途中結果を丸めないので、color() チェーンで同じ結果になることを確かめる
+  test('入れ子呼び出し（color() チェーン）', async () => {
+    const bases = ['#336699', '#123456', '#fedcba', '#f0e68c', '#7a3b2c'];
+    const translucent = 'rgba(51, 102, 153, 0.5)';
+    for (const c of [...bases, translucent]) {
+      for (const a of [3, 7, 13, 29]) {
+        for (const b of [5, 11, 17]) {
+          const cases: [string, string][] = [
+            [
+              color(c).darken(a).lighten(b).toString(),
+              `lighten(darken(${c}, ${a}%), ${b}%)`
+            ],
+            [
+              color(c)
+                .saturate(a)
+                .spin(b * 7)
+                .toString(),
+              `spin(saturate(${c}, ${a}%), ${b * 7})`
+            ],
+            [
+              color(c).tint(a).mix(color(c).shade(b), 37).toString(),
+              `mix(tint(${c}, ${a}%), shade(${c}, ${b}%), 37%)`
+            ],
+            [
+              color(c).multiply('#ff8800').fadeout(a).desaturate(b).toString(),
+              `desaturate(fadeout(multiply(${c}, #ff8800), ${a}%), ${b}%)`
+            ],
+            [
+              color(c).softlight(translucent).greyscale().fade(b).toString(),
+              `fade(greyscale(softlight(${c}, ${translucent})), ${b}%)`
+            ]
+          ];
+          for (const [ours, expr] of cases) {
+            expect(ours).toBe(await evalLess(expr));
+          }
+        }
+      }
+    }
+  });
+
+  test('入れ子呼び出し（関数に Color を渡す）', async () => {
+    for (const c of ['#336699', '#fedcba']) {
+      expect(lf.lighten(color(c).darken(3), 5)).toBe(
+        await evalLess(`lighten(darken(${c}, 3%), 5%)`)
+      );
+      expect(lf.contrast(color(c).darken(20))).toBe(
+        await evalLess(`contrast(darken(${c}, 20%))`)
+      );
     }
   });
 });

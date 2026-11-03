@@ -1,11 +1,24 @@
-import { formatColor, fromHSLA, parseColor, toHSLA } from './color';
+import {
+  type ColorInput,
+  type ColorType,
+  formatColor,
+  fromHSLA,
+  parseColor,
+  toFinite,
+  toHSLA
+} from './color';
 
-export type SpinType = (color: string, angle: number) => string;
-const spin: SpinType = (color, angle) => {
-  const hsla = toHSLA(parseColor(color));
-  const hue = (hsla.h + angle) % 360;
+export type SpinType = (color: ColorInput, angle: number) => string;
+
+// 内部用。丸めずに ColorType のまま返す
+export const spinColor = (c: ColorType, angle: number): ColorType => {
+  const hsla = toHSLA(c);
+  const hue = (hsla.h + toFinite(angle, 'angle')) % 360;
   hsla.h = hue < 0 ? 360 + hue : hue;
-  return formatColor(fromHSLA(hsla));
+  return fromHSLA(hsla);
 };
+
+const spin: SpinType = (color, angle) =>
+  formatColor(spinColor(parseColor(color), angle));
 
 export default spin;

@@ -1,10 +1,17 @@
-import type { AmountType } from './color';
-import mix from './mix';
+import type { AmountType, ColorInput, ColorType } from './color';
+import mix, { mixColor } from './mix';
 
 export type TintType = (
-  color: string,
+  color: ColorInput,
   amount: AmountType
 ) => ReturnType<typeof mix>;
-const tint: TintType = (color, amount) => mix('#ffffff', color, amount);
+
+const white: ColorType = { r: 255, g: 255, b: 255, a: 1 };
+
+// 内部用。丸めずに ColorType のまま返す
+export const tintColor = (c: ColorType, amount: AmountType) =>
+  mixColor(white, c, amount);
+
+const tint: TintType = (color, amount) => mix(white, color, amount);
 
 export default tint;

@@ -37,17 +37,38 @@ lf.mix('#000000', '#ffffff');
 lf.convert.hex2rgb('#f80'); // [255, 136, 0]
 ```
 
+## 関数をつなげて使う（`color()`）
+
+関数の戻り値は文字列なので、関数を入れ子にすると途中で整数に丸められ、Less と 1 ずれることがあります。
+`color()` を使うと途中結果を小数のまま保つので、Less で関数を入れ子にした場合と同じ結果になります。
+
+```ts
+import { color, lighten, darken } from 'less-functions';
+
+// Less の lighten(darken(#336699, 3%), 5%) と同じ結果
+color('#336699').darken(3).lighten(5).toString(); // '#366ba1'
+lighten(darken('#336699', 3), 5); // '#356ba1'（途中で丸められる）
+
+// Color は { r, g, b, a } を持つので、そのまま各関数にも渡せる
+lighten(color('#336699').darken(3), 5); // '#366ba1'
+color('#336699').fade(50).alpha(); // 0.5
+```
+
+`Color` には上記の関数一覧と同じ名前のメソッドがあり（ブレンドは `this` が背景）、`toString()` で文字列、`toObject()` で丸めていない `{ r, g, b, a }` を返します。
+
 ## 色の指定と出力
 
-色を受け取る関数は、次の形式の文字列に対応しています。不正な形式を渡すと `TypeError` を投げます。
+色を受け取る関数は、次の形式に対応しています。不正な形式を渡すと `TypeError` を投げます。
 
 - `#rgb` / `#rgba` / `#rrggbb` / `#rrggbbaa`（`#` は省略可）
 - `rgb()` / `rgba()` / `hsl()` / `hsla()`（カンマ区切りと `rgb(0 128 255 / 50%)` のようなスペース区切りの両方）
+  - `hsl()` の色相は単位なし（度）と `deg` / `turn` / `rad` / `grad` に対応
 - CSS の色名（`red`、`rebeccapurple` など 148 色）と `transparent`
+- `{ r, g, b, a }` のオブジェクト（`color()` の戻り値を含む）
 
 色を返す関数は、Less と同じく不透明なら `#rrggbb` を、半透明なら `rgba(r, g, b, a)` を返します。
 
-割合を指定する引数（`amount` / `weight` / `threshold`）には、数値と `'10%'` のような文字列のどちらでも渡せます。
+割合を指定する引数（`amount` / `weight` / `threshold`）には、数値と `'10%'` のような文字列のどちらでも渡せます。割合や角度に `NaN` や `Infinity` を渡すと `TypeError` を投げます。
 
 ## 関数一覧
 
@@ -108,6 +129,7 @@ lf.convert.hex2rgb('#f80'); // [255, 136, 0]
 
 | 関数                 | 説明                                                                |
 | -------------------- | ------------------------------------------------------------------- |
+| `color(input)`       | 関数をつなげて使うための `Color` オブジェクトを作る                 |
 | `parseColor(input)`  | 色の文字列を `{ r, g, b, a }` に変換する                            |
 | `formatColor(color)` | `{ r, g, b, a }` を `'#rrggbb'` または `'rgba(…)'` にする           |
 | `hex2rgb(hex)`       | `'#f80'` → `[255, 136, 0]`（3 桁・6 桁の hex のみ）                 |
@@ -131,6 +153,7 @@ rgb2hex(toRGB([r, g, b])); // number は検証してから渡す
 - `saturation` / `lightness` は `%` を付けない 0〜100 の数値で返します
 - Less は `hsl()` で指定した色を `hsl()` 形式のまま出力することがありますが、こちらは常に `#rrggbb` か `rgba()` で返します
 - `contrast` の `dark` / `light` は、渡された文字列をそのまま返します
+- `hsl()` の色相の単位は CSS どおりに換算します（Less は単位を無視して数値を度として扱うため、`0.5turn` は 0.5 度になります）
 
 ## 開発
 
