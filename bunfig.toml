@@ -1,0 +1,5 @@
+# bun fmt の設定
+[fmt]
+singleQuote = true
+trailingComma = "none"
+arrowParens = "avoid"

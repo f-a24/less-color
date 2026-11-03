@@ -5,24 +5,18 @@
   "main": "src/index.ts",
   "license": "MIT",
   "scripts": {
-    "build": "bun build src/browser.ts --outfile public/index.js --format iife --target browser --minify",
-    "start": "bun --watch scripts/dev.ts",
     "lint": "oxlint",
     "fix": "oxlint --fix",
-    "format": "prettier --write .",
+    "format": "bun fmt --no-script",
+    "format:check": "bun fmt --no-script --check",
     "typecheck": "tsc",
     "test": "bun test",
     "prepare": "husky"
   },
-  "prettier": {
-    "singleQuote": true,
-    "trailingComma": "none",
-    "arrowParens": "avoid"
-  },
   "lint-staged": {
     "*.ts": [
       "oxlint --fix",
-      "prettier --write"
+      "bun fmt --no-script"
     ]
   },
   "devDependencies": {
@@ -30,7 +24,6 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "oxlint": "^1.90.0",
-    "prettier": "^3.9.10",
     "typescript": "^7.0.2"
   }
 }
