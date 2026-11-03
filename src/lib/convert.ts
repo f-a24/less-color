@@ -1,5 +1,18 @@
+// 0 から N-1 までの数値リテラルの union を生成する
+type Enumerate<
+  N extends number,
+  Acc extends number[] = []
+> = Acc['length'] extends N
+  ? Acc[number]
+  : Enumerate<N, [...Acc, Acc['length']]>;
+
+declare const rgbValueBrand: unique symbol;
+// toRGBValue / toRGB で 0〜255 の範囲にあることを検証済みの数値（小数も可）
+type CheckedRGBValue = number & { readonly [rgbValueBrand]: true };
+// 0〜255 の整数リテラルはそのまま書けるようにし、計算結果などは検証を通す
+export type RGBValue = Enumerate<256> | CheckedRGBValue;
 // r, g, b は 0〜255
-export type RGBType = [r: number, g: number, b: number];
+export type RGBType = [r: RGBValue, g: RGBValue, b: RGBValue];
 // h は 0〜360、s と l は 0〜1
 export type HSLType = [h: number, s: number, l: number];
 export type Rgb2HexType = (rgb: RGBType) => string;
@@ -7,8 +20,24 @@ export type Hex2RgbType = (hex: string) => RGBType;
 export type Rgb2HslType = (rgb: RGBType) => HSLType;
 export type Hsl2RgbType = (hsl: HSLType) => RGBType;
 
+/* 数値を RGB の値として検証する。0〜255 の範囲外や NaN は RangeError */
+export const toRGBValue = (n: number): RGBValue => {
+  if (!(n >= 0 && n <= 255)) {
+    throw new RangeError(`RGB value must be between 0 and 255: ${n}`);
+  }
+  return n as RGBValue;
+};
+
+/* 数値の配列を RGBType として検証する */
+export const toRGB = (rgb: readonly [number, number, number]): RGBType => [
+  toRGBValue(rgb[0]),
+  toRGBValue(rgb[1]),
+  toRGBValue(rgb[2])
+];
+
 /* RGB => HEX */
 // Less と同様に 0〜255 に収めてから四捨五入する
+// （範囲外の値は型で弾くが、JavaScript からの呼び出しに備えて実行時もクランプする）
 export const rgb2hex: Rgb2HexType = rgb =>
   `#${rgb
     .map(v => {
@@ -36,6 +65,7 @@ export const hex2rgb: Hex2RgbType = hex => {
       tmpHex.slice(2, 3);
   }
 
+  // 2 桁の 16 進数なので必ず 0〜255 に収まる
   return [tmpHex.slice(0, 2), tmpHex.slice(2, 4), tmpHex.slice(4, 6)].map(str =>
     parseInt(str, 16)
   ) as RGBType;
@@ -99,9 +129,10 @@ export const hsl2rgb: Hsl2RgbType = hsl => {
   const m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
   const m1 = l * 2 - m2;
 
+  // 計算上は 0〜255 に収まるので、丸め誤差だけ吸収して RGBType にする
   return [
     hue(h + 1 / 3, m1, m2) * 255,
     hue(h, m1, m2) * 255,
     hue(h - 1 / 3, m1, m2) * 255
-  ];
+  ].map(v => Math.min(255, Math.max(0, v))) as RGBType;
 };

@@ -8,7 +8,14 @@ import mix from './lib/mix';
 
 // tree-shaking が効くように名前付きでもエクスポートする
 export { contrast, convert, tint, shade, luma, spin, mix };
-export { rgb2hex, hex2rgb, rgb2hsl, hsl2rgb } from './lib/convert';
+export {
+  rgb2hex,
+  hex2rgb,
+  rgb2hsl,
+  hsl2rgb,
+  toRGB,
+  toRGBValue
+} from './lib/convert';
 export { parseColor, formatColor } from './lib/color';
 export {
   saturate,
@@ -41,7 +48,7 @@ export {
   average,
   negation
 } from './lib/blend';
-export type { RGBType, HSLType } from './lib/convert';
+export type { RGBType, RGBValue, HSLType } from './lib/convert';
 export type { ColorType, HSLAType, AmountType } from './lib/color';
 export type { AdjustType, MethodType } from './lib/adjust';
 export type { BlendType } from './lib/blend';

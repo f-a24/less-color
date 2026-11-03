@@ -1,4 +1,4 @@
-import { rgb2hex, rgb2hsl, hsl2rgb } from './convert';
+import { rgb2hex, rgb2hsl, hsl2rgb, type RGBType } from './convert';
 import namedColors from './named-colors';
 
 // r, g, b は 0〜255、a は 0〜1
@@ -10,6 +10,10 @@ export type AmountType = number | `${number}%`;
 
 export const clamp = (v: number, min = 0, max = 1) =>
   Math.min(max, Math.max(min, v));
+
+// 内部の色を 0〜255 に収めて RGBType にする
+const toRGBType = ({ r, g, b }: ColorType) =>
+  [clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255)] as RGBType;
 
 const invalid = (input: string) => new TypeError(`Invalid color: ${input}`);
 
@@ -111,11 +115,11 @@ export const formatColor = ({ r, g, b, a }: ColorType): string => {
     const rgb = [r, g, b].map(v => Math.round(clamp(v, 0, 255)));
     return `rgba(${rgb.join(', ')}, ${alpha})`;
   }
-  return rgb2hex([r, g, b]);
+  return rgb2hex(toRGBType({ r, g, b, a }));
 };
 
 export const toHSLA = ({ r, g, b, a }: ColorType): HSLAType => {
-  const [h, s, l] = rgb2hsl([r, g, b]);
+  const [h, s, l] = rgb2hsl(toRGBType({ r, g, b, a }));
   return { h, s, l, a };
 };
 
