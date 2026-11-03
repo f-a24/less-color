@@ -6,13 +6,23 @@ export type Rgb2HslType = (rgb: RGBType) => HSLType;
 export type Hsl2RgbType = (hsl: HSLType) => RGBType;
 
 /* RGB => HEX */
+// Less と同様に 0〜255 に収めてから四捨五入する
 export const rgb2hex: Rgb2HexType = rgb =>
-  `#${rgb.map(v => `0${Math.floor(v).toString(16)}`.slice(-2)).join('')}`;
+  `#${rgb
+    .map(v => {
+      const n = Math.round(Math.min(255, Math.max(0, v)));
+      return `0${n.toString(16)}`.slice(-2);
+    })
+    .join('')}`;
 
 /* HEX => RGB */
 export const hex2rgb: Hex2RgbType = hex => {
   let tmpHex = hex;
   if (hex.slice(0, 1) === '#') tmpHex = hex.slice(1);
+  // 3 桁または 6 桁の 16 進数以外は不正な入力として扱う
+  if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(tmpHex)) {
+    throw new TypeError(`Invalid hex color: ${hex}`);
+  }
   // '#' を除いた後の文字列で短縮形（例: 'f00'）かどうかを判定する
   if (tmpHex.length === 3) {
     tmpHex =
@@ -80,7 +90,8 @@ const hue = (h: number, m1: number, m2: number) => {
 
 /* HSL => RGB */
 export const hsl2rgb: Hsl2RgbType = hsl => {
-  const h = (hsl[0] % 360) / 360;
+  // 負の値や 360 以上の色相も 0〜360 の範囲に正規化する
+  const h = (((hsl[0] % 360) + 360) % 360) / 360;
   const s = Math.min(1, Math.max(0, hsl[1]));
   const l = Math.min(1, Math.max(0, hsl[2]));
   const m2 = l <= 0.5 ? l * (s + 1) : l + s - l * s;
