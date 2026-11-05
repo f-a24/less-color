@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>less-color サンプル</title>
+    <meta
+      name="description"
+      content="Less の色関数を TypeScript に移植した less-color のサンプル"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div class="wrap">
+        <h1>less-color</h1>
+        <p class="lead">
+          Less の色関数（mix / tint / spin / lighten / fade / multiply など）の
+          TypeScript
+          移植。下の色や値を変えると、すべての結果がその場で更新されます。
+        </p>
+        <pre class="install"><code>npm install less-color</code></pre>
+        <p class="links">
+          <a href="https://github.com/f-a24/less-color">GitHub</a>
+        </p>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="controls" aria-label="入力">
+        <label class="field">
+          <span>ベースの色</span>
+          <span class="color-input">
+            <input type="color" id="base-picker" value="#336699" />
+            <input type="text" id="base" value="#336699" spellcheck="false" />
+          </span>
+          <small class="error" id="base-error"></small>
+        </label>
+        <label class="field">
+          <span>2 つ目の色（mix・ブレンド用）</span>
+          <span class="color-input">
+            <input type="color" id="second-picker" value="#ff6600" />
+            <input type="text" id="second" value="#ff6600" spellcheck="false" />
+          </span>
+          <small class="error" id="second-error"></small>
+        </label>
+        <label class="field">
+          <span>amount: <output id="amount-out">20</output>%</span>
+          <input type="range" id="amount" min="0" max="100" value="20" />
+        </label>
+        <label class="field">
+          <span>angle（spin）: <output id="angle-out">30</output>°</span>
+          <input type="range" id="angle" min="-180" max="180" value="30" />
+        </label>
+      </section>
+
+      <section>
+        <h2>HSL・アルファの操作</h2>
+        <div class="grid" id="adjust"></div>
+      </section>
+
+      <section>
+        <h2>色の混合・回転</h2>
+        <div class="grid" id="mixing"></div>
+      </section>
+
+      <section>
+        <h2>パレット（tint / shade）</h2>
+        <div class="palette" id="palette"></div>
+      </section>
+
+      <section>
+        <h2>ブレンド</h2>
+        <p class="note">ベースの色を背景、2 つ目の色を前景として合成します。</p>
+        <div class="grid" id="blend"></div>
+      </section>
+
+      <section>
+        <h2>関数をつなげる（<code>color()</code>）</h2>
+        <p class="note">
+          途中結果を小数のまま保つので、Less
+          で関数を入れ子にした場合と同じ結果になります。
+        </p>
+        <div class="grid" id="chain"></div>
+      </section>
+
+      <section>
+        <h2>成分の取得・変換</h2>
+        <table class="table">
+          <tbody id="info"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <footer class="wrap footer">MIT License</footer>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

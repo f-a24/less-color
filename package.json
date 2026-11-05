@@ -29,6 +29,7 @@
     "format:check": "bun fmt --no-script --check",
     "typecheck": "tsc",
     "test": "bun test",
+    "build:site": "rm -rf site-dist && bun build site/index.html --outdir site-dist --minify",
     "prepare": "husky"
   },
   "lint-staged": {
